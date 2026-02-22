@@ -101,7 +101,17 @@ Teraz otwórz przeglądarkę i wejdź na:
 
 Hasło do panelu admina to to, co ustawiłaś w pliku `.env` (domyślnie: `dunska`).
 
-### Krok 6: Zamknięcie strony
+### Krok 6: Wypełnij stronę testowymi danymi (Opcjonalne)
+
+Jeśli chcesz, by Twoja strona od początku wyglądała jak gotowy sklep (z markami odzieżowymi, wpisami na blogu i przykładowymi zdjęciami), otwórz **Terminal** (będąc w głównym folderze projektu) i wpisz:
+
+```
+npm run seed
+```
+
+Zobaczysz komunikat „Seedowanie zakończone sukcesem!”. Możesz teraz odświeżyć stronę w przeglądarce.
+
+### Krok 7: Zamknięcie strony
 
 Żeby zatrzymać stronę, w terminalu naciśnij `Ctrl + C`.
 
