@@ -18,7 +18,9 @@
       Przesyłanie {{ uploadCount }} zdjęć...
     </p>
 
-    <div class="insp-grid" v-if="items.length">
+    <p v-if="loading" class="text-muted state-msg">Ładowanie inspiracji...</p>
+    <p v-else-if="error" class="state-msg state-msg--error">{{ error }}</p>
+    <div class="insp-grid" v-else-if="items.length">
       <div v-for="(item, idx) in items" :key="item._id" class="insp-card">
         <img :src="item.image" class="insp-card__img" />
         <div class="insp-card__actions">
@@ -32,7 +34,7 @@
         </div>
       </div>
     </div>
-    <p v-else class="text-muted" style="padding: var(--sp-lg)">
+    <p v-else class="text-muted state-msg">
       Brak inspiracji. Kliknij „+ Dodaj zdjęcia" aby dodać.
     </p>
   </div>
@@ -45,12 +47,22 @@ import axios from "axios";
 const items = ref([]);
 const uploading = ref(false);
 const uploadCount = ref(0);
+const loading = ref(true);
+const error = ref("");
 
 const fetchAll = async () => {
+  loading.value = true;
+  error.value = "";
   try {
     const { data } = await axios.get("/api/inspirations");
     items.value = data;
-  } catch (e) {}
+  } catch (e) {
+    error.value =
+      e.response?.data?.error ||
+      "Nie udało się pobrać inspiracji. Spróbuj ponownie.";
+  } finally {
+    loading.value = false;
+  }
 };
 
 const uploadImages = async (e) => {
@@ -105,6 +117,12 @@ onMounted(fetchAll);
 .upload-hint {
   margin-bottom: var(--sp-sm);
   font-size: var(--fs-sm);
+}
+.state-msg {
+  padding: var(--sp-lg);
+}
+.state-msg--error {
+  color: var(--clr-danger);
 }
 .insp-grid {
   display: grid;

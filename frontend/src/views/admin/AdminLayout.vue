@@ -12,7 +12,14 @@
           class="sidebar__link"
           exact-active-class="sidebar__link--active"
         >
-          Dashboard
+          Start
+        </router-link>
+        <router-link
+          :to="{ name: 'admin-settings' }"
+          class="sidebar__link"
+          active-class="sidebar__link--active"
+        >
+          Strona główna i techniczne
         </router-link>
         <router-link
           :to="{ name: 'admin-brands' }"
@@ -43,11 +50,18 @@
           Zapytania
         </router-link>
         <router-link
-          :to="{ name: 'admin-settings' }"
+          :to="{ name: 'admin-about' }"
           class="sidebar__link"
           active-class="sidebar__link--active"
         >
-          Ustawienia
+          O nas
+        </router-link>
+        <router-link
+          :to="{ name: 'admin-contact' }"
+          class="sidebar__link"
+          active-class="sidebar__link--active"
+        >
+          Kontakt
         </router-link>
       </nav>
 

@@ -9,7 +9,9 @@
       >
     </div>
 
-    <table class="admin-table" v-if="brands.length">
+    <p v-if="loading" class="text-muted state-msg">Ładowanie marek...</p>
+    <p v-else-if="error" class="state-msg state-msg--error">{{ error }}</p>
+    <table class="admin-table" v-else-if="brands.length">
       <thead>
         <tr>
           <th>Kolejność</th>
@@ -46,7 +48,7 @@
         </tr>
       </tbody>
     </table>
-    <p v-else class="text-muted" style="padding: var(--sp-lg)">
+    <p v-else class="text-muted state-msg">
       Brak marek. Dodaj pierwszą.
     </p>
   </div>
@@ -57,11 +59,21 @@ import { ref, onMounted } from "vue";
 import axios from "axios";
 
 const brands = ref([]);
+const loading = ref(true);
+const error = ref("");
 const fetch = async () => {
+  loading.value = true;
+  error.value = "";
   try {
     const { data } = await axios.get("/api/brands");
     brands.value = data;
-  } catch (e) {}
+  } catch (e) {
+    error.value =
+      e.response?.data?.error ||
+      "Nie udało się pobrać listy marek. Spróbuj ponownie.";
+  } finally {
+    loading.value = false;
+  }
 };
 const deleteBrand = async (id) => {
   if (!confirm("Usunąć markę?")) return;
@@ -97,5 +109,11 @@ onMounted(fetch);
 .actions {
   display: flex;
   gap: var(--sp-sm);
+}
+.state-msg {
+  padding: var(--sp-lg);
+}
+.state-msg--error {
+  color: var(--clr-danger);
 }
 </style>

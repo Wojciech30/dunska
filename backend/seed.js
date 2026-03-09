@@ -4,20 +4,8 @@ const BlogPost = require("./models/BlogPost");
 const Inspiration = require("./models/Inspiration");
 require("dotenv").config();
 
-// Przykładowe zdjęcia (odzieży/mody duńskiej)
-const heroImages = [
-  "https://images.unsplash.com/photo-1550614000-4b95d4ebfa46?q=80&w=2574&auto=format&fit=crop", // fashion runway/editorial
-  "https://images.unsplash.com/photo-1496747611176-843222e1e57c?q=80&w=2673&auto=format&fit=crop", // minimalist fashion
-  "https://images.unsplash.com/photo-1509319117193-57bab727e09d?q=80&w=2574&auto=format&fit=crop", // bright colors
-];
-
-const galleryImages = [
-  "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=2520&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1539008835657-9e8e9680c956?q=80&w=2574&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1485230895905-eb56f66378ae?q=80&w=2670&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?q=80&w=2670&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=2670&auto=format&fit=crop",
-];
+const heroImages = [];
+const galleryImages = [];
 
 const brandData = [
   {
@@ -27,7 +15,7 @@ const brandData = [
     isPremium: true,
     premiumLabel: "Kultowy Scandi",
     order: 1,
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Ganni_logo.svg/1024px-Ganni_logo.svg.png",
+    logo: "",
     heroImage: heroImages[0],
     gallery: [galleryImages[0], galleryImages[1]],
   },
@@ -37,7 +25,7 @@ const brandData = [
       "<p>ROTATE to marka stworzona przez duetu influencerek (Jeanette Madsen i Thora Valdimars). Jest odpowiedzią na to, czego brakowało im w szafach — ubrań idealnych na imprezę.</p><p>Krótkie sukienki, mocne bufki i lata 80. w nowoczesnym wydaniu. Jeśli szukasz kreacji, która przyciągnie wszystkie spojrzenia, ROTATE jest odpowiedzią.</p>",
     isPremium: false,
     order: 2,
-    logo: "https://pl.rotatebirgerchristensen.com/cdn/shop/files/ROTATE_Logo2_190x.png",
+    logo: "",
     heroImage: heroImages[1],
     gallery: [galleryImages[2], galleryImages[3]],
   },
@@ -48,7 +36,7 @@ const brandData = [
     isPremium: true,
     premiumLabel: "Mistrzyni Koloru",
     order: 3,
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Stine_Goya_logo.svg/1024px-Stine_Goya_logo.svg.png",
+    logo: "",
     heroImage: heroImages[2],
     gallery: [galleryImages[4], galleryImages[0]],
   },
@@ -128,12 +116,14 @@ const seedDB = async () => {
     console.log(`✅ Utworzono ${blogData.length} wpisów na blogu.`);
 
     // MOCKOWANIE INSPIRACJI (GALERIA)
-    const inspoData = galleryImages.map((img, i) => ({
-      image: img,
-      order: i,
-      // Losowo przypisz markę do niektórych zdjęć
-      brand: i % 2 === 0 ? createdBrands[0]._id : null,
-    }));
+    const inspoData = galleryImages
+      .filter(Boolean)
+      .map((img, i) => ({
+        image: img,
+        order: i,
+        // Losowo przypisz markę do niektórych zdjęć
+        brand: i % 2 === 0 ? createdBrands[0]._id : null,
+      }));
 
     for (const data of inspoData) {
       await Inspiration.create(data);

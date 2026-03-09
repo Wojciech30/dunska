@@ -9,7 +9,9 @@
       >
     </div>
 
-    <table class="admin-table" v-if="posts.length">
+    <p v-if="loading" class="text-muted state-msg">Ładowanie wpisów...</p>
+    <p v-else-if="error" class="state-msg state-msg--error">{{ error }}</p>
+    <table class="admin-table" v-else-if="posts.length">
       <thead>
         <tr>
           <th>Data</th>
@@ -59,7 +61,7 @@
         </tr>
       </tbody>
     </table>
-    <p v-else class="text-muted" style="padding: var(--sp-lg)">
+    <p v-else class="text-muted state-msg">
       Brak wpisów. Dodaj pierwszy.
     </p>
   </div>
@@ -70,12 +72,22 @@ import { ref, onMounted } from "vue";
 import axios from "axios";
 
 const posts = ref([]);
+const loading = ref(true);
+const error = ref("");
 const formatDate = (d) => new Date(d).toLocaleDateString("pl-PL");
 const fetch = async () => {
+  loading.value = true;
+  error.value = "";
   try {
     const { data } = await axios.get("/api/blog/admin/all");
     posts.value = data;
-  } catch (e) {}
+  } catch (e) {
+    error.value =
+      e.response?.data?.error ||
+      "Nie udało się pobrać listy wpisów. Spróbuj ponownie.";
+  } finally {
+    loading.value = false;
+  }
 };
 const deletePost = async (id) => {
   if (!confirm("Usunąć wpis?")) return;
@@ -104,5 +116,11 @@ onMounted(fetch);
 .actions {
   display: flex;
   gap: var(--sp-sm);
+}
+.state-msg {
+  padding: var(--sp-lg);
+}
+.state-msg--error {
+  color: var(--clr-danger);
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
   <div class="editor">
-    <h1 class="admin-title">Ustawienia strony</h1>
+    <h1 class="admin-title">Ustawienia strony głównej</h1>
 
     <div v-if="loading" class="text-muted" style="padding: var(--sp-lg)">
       Ładowanie...
@@ -30,102 +30,32 @@
         </div>
 
         <div class="side-card">
-          <h3 class="card-heading">O nas</h3>
-          <div class="form-group">
-            <label class="label">Tytuł</label
-            ><input v-model="form.aboutTitle" class="input" />
-          </div>
-          <div class="form-group">
-            <label class="label">Krótki opis (strona główna)</label
-            ><textarea
-              v-model="form.aboutPreview"
-              class="textarea"
-              rows="3"
-            ></textarea>
-          </div>
-          <div class="form-group">
-            <label class="label">Pełna treść (strona O nas)</label
-            ><textarea
-              v-model="form.aboutContent"
-              class="textarea"
-              rows="8"
-            ></textarea>
-          </div>
-          <div class="form-group">
-            <label class="label">Zdjęcie</label>
-            <img
-              v-if="form.aboutImage"
-              :src="form.aboutImage"
-              class="preview-img"
-            />
-            <input
-              type="file"
-              @change="(e) => upload(e, 'aboutImage')"
-              accept="image/*"
-            />
-          </div>
-        </div>
-
-        <div class="side-card">
-          <h3 class="card-heading">Kontakt & Social</h3>
-          <div class="form-group">
-            <label class="label">Email</label
-            ><input v-model="form.contactEmail" type="email" class="input" />
-          </div>
-          <div class="form-group">
-            <label class="label">Telefon</label
-            ><input v-model="form.phone" class="input" />
-          </div>
-          <div class="form-group">
-            <label class="label">Adres</label
-            ><input v-model="form.address" class="input" />
-          </div>
-          <div class="form-group">
-            <label class="label">Map URL (embed)</label
-            ><input v-model="form.mapUrl" class="input" />
-          </div>
-          <div class="form-group">
-            <label class="label">Instagram URL</label
-            ><input v-model="form.instagramUrl" class="input" />
-          </div>
-          <div class="form-group">
-            <label class="label">Instagram DM URL</label
-            ><input v-model="form.instagramDmUrl" class="input" />
-          </div>
-          <div class="form-group">
-            <label class="label">Facebook URL</label
-            ><input v-model="form.facebookUrl" class="input" />
-          </div>
-        </div>
-
-        <div class="side-card">
           <h3 class="card-heading">Sekcje strony głównej</h3>
+          <p class="text-muted reorder-hint">
+            Przeciągnij i upuść, aby zmienić kolejność sekcji.
+          </p>
           <div
             v-for="(sec, idx) in form.homepageSections"
             :key="sec.type"
             class="section-row"
+            :draggable="true"
+            @dragstart="onDragStart(idx)"
+            @dragover.prevent
+            @drop="onDrop(idx)"
           >
             <span class="section-row__handle">⋮⋮</span>
-            <span class="section-row__name">{{ sec.type }}</span>
+            <span class="section-row__name">{{ sectionLabel(sec.type) }}</span>
             <label class="section-row__toggle"
               ><input type="checkbox" v-model="sec.enabled" /> Wł.</label
             >
-            <button
-              type="button"
-              @click="moveSection(idx, -1)"
-              :disabled="idx === 0"
-              class="btn btn--ghost btn--sm"
-            >
-              ↑
-            </button>
-            <button
-              type="button"
-              @click="moveSection(idx, 1)"
-              :disabled="idx === form.homepageSections.length - 1"
-              class="btn btn--ghost btn--sm"
-            >
-              ↓
-            </button>
+          </div>
+        </div>
+
+        <div class="side-card">
+          <h3 class="card-heading">Ustawienia techniczne</h3>
+          <div class="form-group">
+            <label class="label">Stopka</label>
+            <input v-model="form.footerText" class="input" />
           </div>
         </div>
       </div>
@@ -146,12 +76,37 @@ import axios from "axios";
 const form = ref({});
 const loading = ref(true);
 const saving = ref(false);
+const draggedIndex = ref(null);
+
+const sectionLabels = {
+  hero: "Baner główny",
+  brands: "Marki",
+  inspirations: "Inspiracje",
+  about: "O nas",
+  cta: "Sekcja CTA",
+  blog: "Blog",
+  social: "Social media",
+};
+
+const sectionLabel = (type) => sectionLabels[type] || type;
+
+const normalizeSectionOrder = () => {
+  if (!Array.isArray(form.value.homepageSections)) return;
+  form.value.homepageSections.forEach((sec, idx) => {
+    sec.order = idx;
+  });
+};
 
 const fetchData = async () => {
   loading.value = true;
   try {
     const { data } = await axios.get("/api/settings");
     form.value = data;
+    if (!Array.isArray(form.value.homepageSections)) {
+      form.value.homepageSections = [];
+    }
+    form.value.homepageSections.sort((a, b) => a.order - b.order);
+    normalizeSectionOrder();
   } catch (e) {
   } finally {
     loading.value = false;
@@ -171,16 +126,22 @@ const upload = async (e, field) => {
   }
 };
 
-const moveSection = (idx, delta) => {
-  const ni = idx + delta;
-  if (ni < 0 || ni >= form.value.homepageSections.length) return;
-  const item = form.value.homepageSections.splice(idx, 1)[0];
-  form.value.homepageSections.splice(ni, 0, item);
+const onDragStart = (idx) => {
+  draggedIndex.value = idx;
+};
+
+const onDrop = (dropIndex) => {
+  if (draggedIndex.value === null || draggedIndex.value === dropIndex) return;
+  const item = form.value.homepageSections.splice(draggedIndex.value, 1)[0];
+  form.value.homepageSections.splice(dropIndex, 0, item);
+  draggedIndex.value = null;
+  normalizeSectionOrder();
 };
 
 const save = async () => {
   saving.value = true;
   try {
+    normalizeSectionOrder();
     await axios.put("/api/settings/admin", form.value);
     alert("Ustawienia zapisane.");
   } catch (e) {
@@ -256,6 +217,10 @@ onMounted(fetchData);
 }
 .section-row__toggle input {
   accent-color: var(--clr-accent);
+}
+.reorder-hint {
+  margin-bottom: var(--sp-sm);
+  font-size: var(--fs-sm);
 }
 
 .editor-actions {

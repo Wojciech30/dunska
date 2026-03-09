@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const SiteSettings = require('../models/SiteSettings');
 const adminAuth = require('../middleware/auth');
+const { sanitizeHtml } = require('../utils/sanitizeHtml');
+const { deleteUnusedLocalUrls } = require('../services/mediaCleanup');
 
 // PUBLIC — Get site settings
 router.get('/', async (req, res) => {
@@ -27,8 +29,23 @@ router.post('/admin/login', (req, res) => {
 router.put('/admin', adminAuth, async (req, res) => {
   try {
     let settings = await SiteSettings.getSettings();
-    Object.assign(settings, req.body);
+    const previousImages = [settings.heroImage, settings.aboutImage];
+
+    const payload = { ...req.body };
+    if (Object.prototype.hasOwnProperty.call(req.body, 'aboutContent')) {
+      payload.aboutContent = sanitizeHtml(req.body.aboutContent);
+    }
+    if (Object.prototype.hasOwnProperty.call(req.body, 'aboutPreview')) {
+      payload.aboutPreview = sanitizeHtml(req.body.aboutPreview);
+    }
+
+    Object.assign(settings, payload);
     await settings.save();
+
+    deleteUnusedLocalUrls(previousImages, {
+      excludeUrls: [settings.heroImage, settings.aboutImage],
+    }).catch((err) => console.error('settings cleanup error:', err.message));
+
     res.json(settings);
   } catch (err) {
     res.status(400).json({ error: err.message });

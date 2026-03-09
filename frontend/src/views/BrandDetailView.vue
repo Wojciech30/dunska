@@ -57,7 +57,10 @@ const heroStyle = computed(() => {
 });
 
 const inquire = () => {
-  localStorage.setItem("inquiry_brand", brand.value.name);
+  localStorage.setItem(
+    "inquiry_brand",
+    JSON.stringify({ id: brand.value._id, name: brand.value.name }),
+  );
   window.dispatchEvent(new CustomEvent("open-inquiry"));
 };
 

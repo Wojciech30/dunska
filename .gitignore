@@ -3,7 +3,6 @@ dist/
 .env
 backend/uploads/*
 !backend/uploads/.gitkeep
-TODO.md
 package-lock.json
 npm-debug.log
 yarn.lock

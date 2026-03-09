@@ -88,6 +88,13 @@
               </div>
               <p class="modal__hint">Wymagany min. jeden kanał kontaktu.</p>
 
+              <select v-model="form.brandId" class="select">
+                <option :value="null">Wybierz markę (opcjonalnie)</option>
+                <option v-for="b in brands" :key="b._id" :value="b._id">
+                  {{ b.name }}
+                </option>
+              </select>
+
               <div class="modal__field">
                 <span class="label">Zainteresowania</span>
                 <div class="modal__checks">
@@ -144,7 +151,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from "vue";
+import { computed, ref, watch, onMounted } from "vue";
 import axios from "axios";
 
 const props = defineProps({ visible: Boolean });
@@ -155,6 +162,7 @@ const submitting = ref(false);
 const submitted = ref(false);
 const error = ref("");
 const dmUrl = ref("https://ig.me/m/dunska_concept_store");
+const brands = ref([]);
 
 const interestsOptions = [
   "Sukienka",
@@ -171,12 +179,16 @@ const form = ref({
   name: "",
   email: "",
   phone: "",
+  brandId: null,
   brand: "",
   interests: [],
   size: "",
   message: "",
   consent: false,
 });
+const selectedBrand = computed(() =>
+  brands.value.find((b) => b._id === form.value.brandId),
+);
 
 const close = () => {
   emit("close");
@@ -189,6 +201,7 @@ const resetForm = () => {
     name: "",
     email: "",
     phone: "",
+    brandId: null,
     brand: "",
     interests: [],
     size: "",
@@ -205,7 +218,13 @@ watch(
       resetForm();
       const savedBrand = localStorage.getItem("inquiry_brand");
       if (savedBrand) {
-        form.value.brand = savedBrand;
+        try {
+          const parsed = JSON.parse(savedBrand);
+          if (parsed?.id) form.value.brandId = parsed.id;
+          if (parsed?.name) form.value.brand = parsed.name;
+        } catch (err) {
+          form.value.brand = savedBrand;
+        }
         localStorage.removeItem("inquiry_brand");
       }
     }
@@ -220,6 +239,7 @@ const submit = async () => {
   submitting.value = true;
   error.value = "";
   try {
+    if (selectedBrand.value) form.value.brand = selectedBrand.value.name;
     await axios.post("/api/inquiries", form.value);
     submitted.value = true;
   } catch (e) {
@@ -231,8 +251,12 @@ const submit = async () => {
 
 onMounted(async () => {
   try {
-    const { data } = await axios.get("/api/settings");
-    if (data.instagramDmUrl) dmUrl.value = data.instagramDmUrl;
+    const [settingsRes, brandsRes] = await Promise.all([
+      axios.get("/api/settings"),
+      axios.get("/api/brands"),
+    ]);
+    if (settingsRes.data.instagramDmUrl) dmUrl.value = settingsRes.data.instagramDmUrl;
+    brands.value = brandsRes.data || [];
   } catch (e) {}
 });
 </script>

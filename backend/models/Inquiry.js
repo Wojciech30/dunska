@@ -4,6 +4,7 @@ const inquirySchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
   phone: { type: String, default: '' },
   email: { type: String, default: '' },
+  brandId: { type: mongoose.Schema.Types.ObjectId, ref: 'Brand', default: null },
   brand: { type: String, default: '' },
   interests: [{ type: String }],
   size: { type: String, default: '' },

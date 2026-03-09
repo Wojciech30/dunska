@@ -1,13 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const Inquiry = require('../models/Inquiry');
+const Brand = require('../models/Brand');
 const adminAuth = require('../middleware/auth');
 const nodemailer = require('nodemailer');
 
 // PUBLIC — Submit inquiry
 router.post('/', async (req, res) => {
   try {
-    const { name, phone, email, brand, interests, size, message, consent } = req.body;
+    const { name, phone, email, brandId, brand, interests, size, message, consent } = req.body;
 
     // Validate: at least phone or email required
     if (!phone && !email) {
@@ -17,7 +18,23 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Zgoda RODO jest wymagana.' });
     }
 
-    const inquiry = new Inquiry({ name, phone, email, brand, interests, size, message, consent });
+    let normalizedBrand = brand || '';
+    if (brandId && !normalizedBrand) {
+      const linkedBrand = await Brand.findById(brandId, { name: 1 }).lean();
+      if (linkedBrand?.name) normalizedBrand = linkedBrand.name;
+    }
+
+    const inquiry = new Inquiry({
+      name,
+      phone,
+      email,
+      brandId: brandId || null,
+      brand: normalizedBrand,
+      interests,
+      size,
+      message,
+      consent,
+    });
     await inquiry.save();
 
     // Send email notification (non-blocking)
@@ -32,7 +49,9 @@ router.post('/', async (req, res) => {
 // ADMIN — Get all inquiries
 router.get('/admin', adminAuth, async (req, res) => {
   try {
-    const inquiries = await Inquiry.find().sort({ createdAt: -1 });
+    const inquiries = await Inquiry.find()
+      .populate('brandId', 'name')
+      .sort({ createdAt: -1 });
     res.json(inquiries);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -52,13 +71,16 @@ router.delete('/admin/:id', adminAuth, async (req, res) => {
 // ADMIN — Export CSV
 router.get('/admin/export', adminAuth, async (req, res) => {
   try {
-    const inquiries = await Inquiry.find().sort({ createdAt: -1 });
+    const inquiries = await Inquiry.find()
+      .populate('brandId', 'name')
+      .sort({ createdAt: -1 });
 
     const header = 'Data,Imię,Telefon,Email,Marka,Zainteresowania,Rozmiar,Wiadomość\n';
     const rows = inquiries.map(i => {
       const date = i.createdAt.toISOString().split('T')[0];
       const interests = (i.interests || []).join('; ');
-      return `"${date}","${i.name}","${i.phone}","${i.email}","${i.brand}","${interests}","${i.size}","${i.message}"`;
+      const brandName = i.brandId?.name || i.brand || '';
+      return `"${date}","${i.name}","${i.phone}","${i.email}","${brandName}","${interests}","${i.size}","${i.message}"`;
     }).join('\n');
 
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
@@ -84,6 +106,8 @@ async function sendNotificationEmail(inquiry) {
 
   const interests = (inquiry.interests || []).join(', ');
 
+  const brandName = inquiry.brand || '—';
+
   await transporter.sendMail({
     from: process.env.SMTP_USER,
     to: process.env.NOTIFICATION_EMAIL,
@@ -93,7 +117,7 @@ async function sendNotificationEmail(inquiry) {
       <p><strong>Imię:</strong> ${inquiry.name}</p>
       <p><strong>Telefon:</strong> ${inquiry.phone || '—'}</p>
       <p><strong>Email:</strong> ${inquiry.email || '—'}</p>
-      <p><strong>Marka:</strong> ${inquiry.brand || '—'}</p>
+      <p><strong>Marka:</strong> ${brandName}</p>
       <p><strong>Zainteresowania:</strong> ${interests || '—'}</p>
       <p><strong>Rozmiar:</strong> ${inquiry.size || '—'}</p>
       <p><strong>Wiadomość:</strong> ${inquiry.message || '—'}</p>

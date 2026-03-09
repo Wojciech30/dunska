@@ -51,6 +51,7 @@ const links = [
   { label: "O nas", to: "/o-nas" },
   { label: "Blog", to: "/blog" },
   { label: "Inspiracje", to: "/inspiracje" },
+  { label: "Kontakt", to: "/kontakt" },
   { label: "Social Media", to: "/social-media" },
 ];
 

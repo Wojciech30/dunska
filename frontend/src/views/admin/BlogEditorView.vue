@@ -2,7 +2,15 @@
   <div class="editor">
     <h1 class="admin-title">{{ isEdit ? "Edytuj wpis" : "Nowy wpis" }}</h1>
 
-    <form @submit.prevent="save" class="editor-form">
+    <div v-if="loading" class="state-box text-muted">Ładowanie danych wpisu...</div>
+    <div v-else-if="loadError" class="state-box state-box--error">
+      <p>{{ loadError }}</p>
+      <button type="button" class="btn btn--ghost btn--sm" @click="fetchPost">
+        Spróbuj ponownie
+      </button>
+    </div>
+
+    <form v-else @submit.prevent="save" class="editor-form">
       <div class="editor-grid">
         <div class="editor-main">
           <div class="form-group">
@@ -10,12 +18,11 @@
             ><input v-model="form.title" class="input" required />
           </div>
           <div class="form-group">
-            <label class="label">Treść (HTML)</label
-            ><textarea
+            <label class="label">Treść</label>
+            <RichTextEditor
               v-model="form.content"
-              class="textarea"
-              rows="16"
-            ></textarea>
+              placeholder="Treść wpisu blogowego."
+            />
           </div>
           <div class="form-group">
             <label class="label">Zajawka</label
@@ -89,12 +96,15 @@
 import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import axios from "axios";
+import RichTextEditor from "@/components/RichTextEditor.vue";
 
 const route = useRoute();
 const router = useRouter();
 const isEdit = computed(() => !!route.params.id);
 const saving = ref(false);
 const brands = ref([]);
+const loading = ref(false);
+const loadError = ref("");
 
 const form = ref({
   title: "",
@@ -135,18 +145,32 @@ const save = async () => {
   }
 };
 
+const fetchPost = async () => {
+  if (!isEdit.value) return;
+  loading.value = true;
+  loadError.value = "";
+  try {
+    const { data } = await axios.get(`/api/blog/admin/${route.params.id}`);
+    Object.assign(form.value, data);
+    if (data.brand?._id) form.value.brand = data.brand._id;
+  } catch (e) {
+    loadError.value =
+      e.response?.data?.error ||
+      "Nie udało się pobrać danych wpisu. Odśwież stronę lub spróbuj ponownie.";
+  } finally {
+    loading.value = false;
+  }
+};
+
 onMounted(async () => {
   try {
     const { data } = await axios.get("/api/brands");
     brands.value = data;
-  } catch (e) {}
-  if (isEdit.value) {
-    try {
-      const { data } = await axios.get(`/api/blog/${route.params.id}`);
-      Object.assign(form.value, data);
-      if (data.brand?._id) form.value.brand = data.brand._id;
-    } catch (e) {}
+  } catch (e) {
+    loadError.value =
+      "Nie udało się pobrać listy marek. Odśwież stronę i spróbuj ponownie.";
   }
+  await fetchPost();
 });
 </script>
 
@@ -186,6 +210,19 @@ onMounted(async () => {
 .editor-actions {
   margin-top: var(--sp-lg);
   display: flex;
+  gap: var(--sp-sm);
+}
+.state-box {
+  margin-bottom: var(--sp-md);
+  padding: var(--sp-md);
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border-light);
+  border-radius: var(--radius);
+}
+.state-box--error {
+  border-color: color-mix(in srgb, var(--clr-danger) 35%, var(--clr-border-light));
+  color: var(--clr-danger);
+  display: grid;
   gap: var(--sp-sm);
 }
 .modal__check {

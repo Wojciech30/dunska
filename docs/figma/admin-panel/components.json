@@ -1,0 +1,93 @@
+{
+  "components": [
+    {
+      "name": "cmp/button",
+      "variants": {
+        "kind": ["primary", "secondary", "ghost", "danger"],
+        "state": ["default", "hover", "active", "disabled", "loading"],
+        "size": ["sm", "md", "lg"],
+        "icon": ["none", "leading", "trailing"]
+      }
+    },
+    {
+      "name": "cmp/input/text",
+      "variants": {
+        "state": ["default", "focus", "error", "disabled"],
+        "withHelper": ["true", "false"],
+        "withValidation": ["true", "false"]
+      }
+    },
+    {
+      "name": "cmp/input/textarea",
+      "variants": {
+        "state": ["default", "focus", "error", "disabled"],
+        "rows": ["3", "6", "10"]
+      }
+    },
+    {
+      "name": "cmp/input/select",
+      "variants": {
+        "state": ["default", "focus", "error", "disabled"],
+        "withSearch": ["false", "true"]
+      }
+    },
+    {
+      "name": "cmp/input/checkbox",
+      "variants": {
+        "state": ["unchecked", "checked", "disabled"]
+      }
+    },
+    {
+      "name": "cmp/tag",
+      "variants": {
+        "kind": ["default", "premium", "neutral", "danger"]
+      }
+    },
+    {
+      "name": "cmp/sidebar/item",
+      "variants": {
+        "state": ["default", "hover", "active"],
+        "hasBadge": ["false", "true"]
+      }
+    },
+    {
+      "name": "cmp/table",
+      "variants": {
+        "state": ["default", "hover-row", "selected-row", "empty"],
+        "density": ["comfortable", "compact"]
+      }
+    },
+    {
+      "name": "cmp/card/stat",
+      "variants": {
+        "state": ["default", "loading"]
+      }
+    },
+    {
+      "name": "cmp/modal",
+      "variants": {
+        "kind": ["detail", "destructive"],
+        "state": ["open", "closed"]
+      }
+    },
+    {
+      "name": "cmp/feedback/alert",
+      "variants": {
+        "kind": ["info", "success", "warning", "error"],
+        "inline": ["true", "false"]
+      }
+    },
+    {
+      "name": "cmp/nav/admin-shell",
+      "variants": {
+        "breakpoint": ["desktop", "tablet", "mobile"],
+        "sidebar": ["expanded", "collapsed", "drawer"]
+      }
+    }
+  ],
+  "screenUsageRules": [
+    "All controls in screen frames must be component instances.",
+    "Only text content can be screen-level overrides; colors and spacing must remain token-driven.",
+    "All interactive states shown in 05 Handoff must reference variant properties, not detached copies."
+  ]
+}

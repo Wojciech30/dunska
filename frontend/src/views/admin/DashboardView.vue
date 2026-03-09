@@ -2,7 +2,10 @@
   <div class="dashboard">
     <h1 class="admin-title">Dashboard</h1>
 
-    <div class="stats-grid">
+    <p v-if="loading" class="text-muted state-msg">Ładowanie statystyk...</p>
+    <p v-else-if="error" class="state-msg state-msg--error">{{ error }}</p>
+
+    <div v-else class="stats-grid">
       <div class="stat-card">
         <span class="stat-card__value font-display">{{ stats.inquiries }}</span>
         <span class="stat-card__label">Nowe zapytania</span>
@@ -26,12 +29,16 @@
 </template>
 
 <script setup>
-import { reactive, onMounted } from "vue";
+import { reactive, onMounted, ref } from "vue";
 import axios from "axios";
 
 const stats = reactive({ inquiries: 0, brands: 0, posts: 0, inspirations: 0 });
+const loading = ref(true);
+const error = ref("");
 
 onMounted(async () => {
+  loading.value = true;
+  error.value = "";
   try {
     const [inq, brands, posts, insp] = await Promise.all([
       axios.get("/api/inquiries/admin"),
@@ -43,7 +50,13 @@ onMounted(async () => {
     stats.brands = brands.data.length;
     stats.posts = posts.data.length;
     stats.inspirations = insp.data.length;
-  } catch (e) {}
+  } catch (e) {
+    error.value =
+      e.response?.data?.error ||
+      "Nie udało się pobrać statystyk. Spróbuj ponownie.";
+  } finally {
+    loading.value = false;
+  }
 });
 </script>
 
@@ -53,6 +66,12 @@ onMounted(async () => {
   font-size: var(--fs-xl);
   font-weight: 600;
   margin-bottom: var(--sp-lg);
+}
+.state-msg {
+  padding: var(--sp-lg);
+}
+.state-msg--error {
+  color: var(--clr-danger);
 }
 
 .stats-grid {

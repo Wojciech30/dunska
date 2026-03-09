@@ -1,0 +1,163 @@
+{
+  "breakpoints": ["desktop", "tablet", "mobile"],
+  "screens": [
+    {
+      "id": "login",
+      "title": "Admin Login",
+      "frames": {
+        "desktop": "scr/desktop/login",
+        "tablet": "scr/tablet/login",
+        "mobile": "scr/mobile/login"
+      },
+      "states": ["default", "error", "loading"],
+      "notes": "Centered auth card, clear field validation, primary CTA prominence."
+    },
+    {
+      "id": "dashboard",
+      "title": "Dashboard",
+      "frames": {
+        "desktop": "scr/desktop/dashboard",
+        "tablet": "scr/tablet/dashboard",
+        "mobile": "scr/mobile/dashboard"
+      },
+      "states": ["default", "loading", "empty"],
+      "sections": ["stats-cards", "quick-actions"],
+      "notes": "4 stats cards on desktop, 2x2 on tablet, stacked on mobile."
+    },
+    {
+      "id": "brands-list",
+      "title": "Brands List",
+      "frames": {
+        "desktop": "scr/desktop/brands-list",
+        "tablet": "scr/tablet/brands-list",
+        "mobile": "scr/mobile/brands-list"
+      },
+      "states": ["default", "loading", "empty", "error"],
+      "notes": "Desktop/tablet table; mobile card-list with same data columns mapped to key/value rows."
+    },
+    {
+      "id": "brand-editor-new",
+      "title": "Brand Editor - New",
+      "frames": {
+        "desktop": "scr/desktop/brand-editor-new",
+        "tablet": "scr/tablet/brand-editor-new",
+        "mobile": "scr/mobile/brand-editor-new"
+      },
+      "states": ["default", "validation-error", "saving"],
+      "notes": "Split layout desktop, stacked layout tablet/mobile."
+    },
+    {
+      "id": "brand-editor-edit",
+      "title": "Brand Editor - Edit",
+      "frames": {
+        "desktop": "scr/desktop/brand-editor-edit",
+        "tablet": "scr/tablet/brand-editor-edit",
+        "mobile": "scr/mobile/brand-editor-edit"
+      },
+      "states": ["default", "saving"],
+      "notes": "Shows populated media previews and delete/remove image actions."
+    },
+    {
+      "id": "blog-list",
+      "title": "Blog List",
+      "frames": {
+        "desktop": "scr/desktop/blog-list",
+        "tablet": "scr/tablet/blog-list",
+        "mobile": "scr/mobile/blog-list"
+      },
+      "states": ["default", "loading", "empty"],
+      "notes": "Status chips for published/draft and quick filters."
+    },
+    {
+      "id": "blog-editor-new",
+      "title": "Blog Editor - New",
+      "frames": {
+        "desktop": "scr/desktop/blog-editor-new",
+        "tablet": "scr/tablet/blog-editor-new",
+        "mobile": "scr/mobile/blog-editor-new"
+      },
+      "states": ["default", "validation-error", "saving"],
+      "notes": "Main content area + right metadata rail; mobile collapses to sections."
+    },
+    {
+      "id": "blog-editor-edit",
+      "title": "Blog Editor - Edit",
+      "frames": {
+        "desktop": "scr/desktop/blog-editor-edit",
+        "tablet": "scr/tablet/blog-editor-edit",
+        "mobile": "scr/mobile/blog-editor-edit"
+      },
+      "states": ["default", "saving"],
+      "notes": "Includes existing cover image and publish toggle in active state."
+    },
+    {
+      "id": "inspirations",
+      "title": "Inspirations",
+      "frames": {
+        "desktop": "scr/desktop/inspirations",
+        "tablet": "scr/tablet/inspirations",
+        "mobile": "scr/mobile/inspirations"
+      },
+      "states": ["default", "reorder-active", "empty"],
+      "notes": "Grid with reorder affordance; mobile uses drag handles per card."
+    },
+    {
+      "id": "inquiries-list",
+      "title": "Inquiries",
+      "frames": {
+        "desktop": "scr/desktop/inquiries-list",
+        "tablet": "scr/tablet/inquiries-list",
+        "mobile": "scr/mobile/inquiries-list"
+      },
+      "states": ["default", "loading", "empty"],
+      "notes": "Header with CSV export and per-row detail action."
+    },
+    {
+      "id": "inquiry-modal",
+      "title": "Inquiry Details Modal",
+      "frames": {
+        "desktop": "scr/desktop/inquiry-modal-open",
+        "tablet": "scr/tablet/inquiry-modal-open",
+        "mobile": "scr/mobile/inquiry-modal-open"
+      },
+      "states": ["open", "destructive-confirm"],
+      "notes": "Modal overlays inquiries list frame with dimmed backdrop."
+    },
+    {
+      "id": "settings",
+      "title": "Settings",
+      "frames": {
+        "desktop": "scr/desktop/settings",
+        "tablet": "scr/tablet/settings",
+        "mobile": "scr/mobile/settings"
+      },
+      "states": ["default", "saving", "success", "error"],
+      "notes": "Grouped cards: hero, about, contact/social, homepage sections ordering."
+    },
+    {
+      "id": "admin-shell",
+      "title": "Admin Layout Shell",
+      "frames": {
+        "desktop": "scr/desktop/shell",
+        "tablet": "scr/tablet/shell",
+        "mobile": "scr/mobile/shell"
+      },
+      "states": ["default", "nav-active", "mobile-drawer-open"],
+      "notes": "Master frame used as base for all admin screens."
+    }
+  ],
+  "handoff": {
+    "requiredFrames": [
+      "handoff/spacing-rules",
+      "handoff/typography-rules",
+      "handoff/component-state-matrix",
+      "handoff/empty-loading-error",
+      "handoff/prototype-map"
+    ],
+    "behaviorNotes": [
+      "Primary actions stay in top-right header for list screens.",
+      "Destructive actions require danger style and confirm surface.",
+      "On mobile, table-heavy screens transform into cards, preserving all fields."
+    ]
+  }
+}

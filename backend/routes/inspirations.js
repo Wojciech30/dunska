@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Inspiration = require('../models/Inspiration');
 const adminAuth = require('../middleware/auth');
+const { deleteUnusedLocalUrls } = require('../services/mediaCleanup');
 
 // PUBLIC — Get all inspirations
 router.get('/', async (req, res) => {
@@ -33,8 +34,16 @@ router.post('/admin', adminAuth, async (req, res) => {
 // ADMIN — Update inspiration
 router.put('/admin/:id', adminAuth, async (req, res) => {
   try {
+    const existing = await Inspiration.findById(req.params.id);
+    if (!existing) return res.status(404).json({ error: 'Inspiration not found' });
+
     const inspiration = await Inspiration.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (!inspiration) return res.status(404).json({ error: 'Inspiration not found' });
+
+    deleteUnusedLocalUrls([existing.image], { excludeUrls: [inspiration.image] }).catch((err) =>
+      console.error('inspiration cleanup error:', err.message),
+    );
+
     res.json(inspiration);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -46,6 +55,11 @@ router.delete('/admin/:id', adminAuth, async (req, res) => {
   try {
     const inspiration = await Inspiration.findByIdAndDelete(req.params.id);
     if (!inspiration) return res.status(404).json({ error: 'Inspiration not found' });
+
+    deleteUnusedLocalUrls([inspiration.image]).catch((err) =>
+      console.error('inspiration cleanup error:', err.message),
+    );
+
     res.json({ message: 'Inspiration deleted' });
   } catch (err) {
     res.status(500).json({ error: err.message });

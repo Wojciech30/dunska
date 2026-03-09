@@ -2,7 +2,15 @@
   <div class="editor">
     <h1 class="admin-title">{{ isEdit ? "Edytuj markę" : "Nowa marka" }}</h1>
 
-    <form @submit.prevent="save" class="editor-form">
+    <div v-if="loading" class="state-box text-muted">Ładowanie danych marki...</div>
+    <div v-else-if="loadError" class="state-box state-box--error">
+      <p>{{ loadError }}</p>
+      <button type="button" class="btn btn--ghost btn--sm" @click="fetchBrand">
+        Spróbuj ponownie
+      </button>
+    </div>
+
+    <form v-else @submit.prevent="save" class="editor-form">
       <div class="editor-grid">
         <div class="editor-main">
           <div class="form-group">
@@ -10,12 +18,11 @@
             ><input v-model="form.name" class="input" required />
           </div>
           <div class="form-group">
-            <label class="label">Opis</label
-            ><textarea
+            <label class="label">Opis</label>
+            <RichTextEditor
               v-model="form.description"
-              class="textarea"
-              rows="8"
-            ></textarea>
+              placeholder="Opisz markę językiem korzyści dla klienta."
+            />
           </div>
         </div>
         <div class="editor-side">
@@ -92,11 +99,14 @@
 import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import axios from "axios";
+import RichTextEditor from "@/components/RichTextEditor.vue";
 
 const route = useRoute();
 const router = useRouter();
 const isEdit = computed(() => !!route.params.id);
 const saving = ref(false);
+const loading = ref(false);
+const loadError = ref("");
 
 const form = ref({
   name: "",
@@ -149,13 +159,24 @@ const save = async () => {
   }
 };
 
-onMounted(async () => {
-  if (isEdit.value) {
-    try {
-      const { data } = await axios.get(`/api/brands/${route.params.id}`);
-      Object.assign(form.value, data);
-    } catch (e) {}
+const fetchBrand = async () => {
+  if (!isEdit.value) return;
+  loading.value = true;
+  loadError.value = "";
+  try {
+    const { data } = await axios.get(`/api/brands/admin/${route.params.id}`);
+    Object.assign(form.value, data);
+  } catch (e) {
+    loadError.value =
+      e.response?.data?.error ||
+      "Nie udało się pobrać danych marki. Odśwież stronę lub spróbuj ponownie.";
+  } finally {
+    loading.value = false;
   }
+};
+
+onMounted(async () => {
+  await fetchBrand();
 });
 </script>
 
@@ -207,6 +228,19 @@ onMounted(async () => {
 .editor-actions {
   margin-top: var(--sp-lg);
   display: flex;
+  gap: var(--sp-sm);
+}
+.state-box {
+  margin-bottom: var(--sp-md);
+  padding: var(--sp-md);
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border-light);
+  border-radius: var(--radius);
+}
+.state-box--error {
+  border-color: color-mix(in srgb, var(--clr-danger) 35%, var(--clr-border-light));
+  color: var(--clr-danger);
+  display: grid;
   gap: var(--sp-sm);
 }
 .modal__check {

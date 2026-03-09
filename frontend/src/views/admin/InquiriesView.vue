@@ -7,7 +7,9 @@
       </button>
     </div>
 
-    <table class="admin-table" v-if="inquiries.length">
+    <p v-if="loading" class="text-muted state-msg">Ładowanie zapytań...</p>
+    <p v-else-if="error" class="state-msg state-msg--error">{{ error }}</p>
+    <table class="admin-table" v-else-if="inquiries.length">
       <thead>
         <tr>
           <th>Data</th>
@@ -30,7 +32,7 @@
             <div v-if="i.email">{{ i.email }}</div>
             <div v-if="i.phone">{{ i.phone }}</div>
           </td>
-          <td>{{ i.brand || "—" }}</td>
+          <td>{{ i.brandId?.name || i.brand || "—" }}</td>
           <td>
             <span
               v-for="int in i.interests"
@@ -58,7 +60,7 @@
         </tr>
       </tbody>
     </table>
-    <p v-else class="text-muted" style="padding: var(--sp-lg)">Brak zapytań.</p>
+    <p v-else class="text-muted state-msg">Brak zapytań.</p>
 
     <!-- Detail Modal -->
     <Teleport to="body">
@@ -99,7 +101,7 @@
             </div>
             <div class="detail-row">
               <span class="label">Marka</span
-              ><span>{{ selected.brand || "—" }}</span>
+              ><span>{{ selected.brandId?.name || selected.brand || "—" }}</span>
             </div>
             <div class="detail-row">
               <span class="label">Rozmiar</span
@@ -134,13 +136,23 @@ import axios from "axios";
 
 const inquiries = ref([]);
 const selected = ref(null);
+const loading = ref(true);
+const error = ref("");
 
 const formatDate = (d) => new Date(d).toLocaleString("pl-PL");
 const fetch = async () => {
+  loading.value = true;
+  error.value = "";
   try {
     const { data } = await axios.get("/api/inquiries/admin");
     inquiries.value = data;
-  } catch (e) {}
+  } catch (e) {
+    error.value =
+      e.response?.data?.error ||
+      "Nie udało się pobrać zapytań. Spróbuj ponownie.";
+  } finally {
+    loading.value = false;
+  }
 };
 const remove = async (id) => {
   if (!confirm("Usunąć?")) return;
@@ -185,6 +197,12 @@ onMounted(fetch);
 .actions {
   display: flex;
   gap: var(--sp-xs);
+}
+.state-msg {
+  padding: var(--sp-lg);
+}
+.state-msg--error {
+  color: var(--clr-danger);
 }
 
 .modal-backdrop {
